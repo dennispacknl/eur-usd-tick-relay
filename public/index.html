@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EUR/USD Live Ticks</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>EUR / USD — Live</h1>
+
+    <div class="ticker">
+      <div class="pair">EUR / USD</div>
+      <div class="price-row">
+        <div id="price" class="price">—</div>
+        <div id="change" class="change">—</div>
+      </div>
+      <div id="time" class="time">waiting for feed...</div>
+    </div>
+
+    <section class="history">
+      <h2>Recent ticks</h2>
+      <ul id="ticks" class="ticks"></ul>
+    </section>
+
+    <footer class="footer">
+      Source: OANDA streaming (relay server)
+    </footer>
+  </main>
+
+  <script>
+    // UI wiring and update function used by ws-client.js
+    const priceEl = document.getElementById('price');
+    const changeEl = document.getElementById('change');
+    const timeEl = document.getElementById('time');
+    const ticksEl = document.getElementById('ticks');
+
+    let lastPrice = null;
+    const maxHistory = 80;
+
+    window.updateUI = function(price, iso) {
+      timeEl.classList.remove('error');
+      const formatted = (typeof price === 'number') ? price.toFixed(5) : price;
+      priceEl.textContent = formatted;
+
+      const now = new Date(iso);
+      timeEl.textContent = 'Last: ' + (isNaN(now.getTime()) ? iso : now.toLocaleString());
+
+      // compute change
+      if (lastPrice === null) {
+        changeEl.textContent = '—';
+        changeEl.className = 'change neutral';
+      } else {
+        const diff = price - lastPrice;
+        const pct = (diff / lastPrice) * 100;
+        const sign = diff > 0 ? '+' : '';
+        changeEl.textContent = `${sign}${diff.toFixed(5)} (${sign}${pct.toFixed(4)}%)`;
+        if (diff > 0) {
+          changeEl.className = 'change up';
+        } else if (diff < 0) {
+          changeEl.className = 'change down';
+        } else {
+          changeEl.className = 'change neutral';
+        }
+      }
+
+      // add to history
+      const li = document.createElement('li');
+      li.textContent = `${(isNaN(now.getTime()) ? iso : now.toLocaleTimeString())} — ${formatted}`;
+      li.className = (lastPrice !== null && price > lastPrice) ? 'tick up' : (lastPrice !== null && price < lastPrice) ? 'tick down' : 'tick';
+      ticksEl.insertBefore(li, ticksEl.firstChild);
+      while (ticksEl.children.length > maxHistory) ticksEl.removeChild(ticksEl.lastChild);
+
+      // flash effect on change
+      if (lastPrice !== null && price !== lastPrice) {
+        priceEl.classList.remove('blink');
+        void priceEl.offsetWidth;
+        priceEl.classList.add('blink');
+      }
+
+      lastPrice = price;
+    };
+  </script>
+
+  <script src="ws-client.js"></script>
+</body>
+</html>
