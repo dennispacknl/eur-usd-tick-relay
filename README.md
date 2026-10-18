@@ -1,11 +1,11 @@
-# EUR-USD Live Tick Relay (OANDA -> WebSocket -> Browser)
+# EUR-USD Live Tick Relay (Finnhub -> WebSocket -> Browser)
 
-This project connects to OANDA's pricing stream for EUR_USD and relays PRICE messages to browser clients via a WebSocket.
+This project connects to Finnhub's WebSocket stream for EUR/USD and relays trade/tick messages to browser clients via a WebSocket.
 
-Security: keep your OANDA token secret. Do not put it into client-side code.
+Security: keep your FINNHUB token secret. Do not put it into client-side code.
 
 Files:
-- app.js — Node server (stream to OANDA, relay to browser WS).
+- app.js — Node server (connects to Finnhub WS, relays to browser WS).
 - package.json — dependencies.
 - public/index.html — frontend UI.
 - public/style.css — UI styles.
@@ -15,17 +15,15 @@ Files:
 Quick start:
 1. Copy the files into a directory, e.g. `eurusd-relay/`.
 2. Create a `.env` (see `.env.example`) and set:
-   - OANDA_TOKEN (your API token)
-   - OANDA_ACCOUNT_ID
-   - OANDA_ENV=practice (or live)
+   - FINNHUB_TOKEN (your Finnhub API key)
+   - FINNHUB_SYMBOL (optional, default: OANDA:EUR_USD)
 3. Install:
    npm install
 4. Run:
    npm start
 5. Open http://localhost:3000 in your browser.
 
-Create a ZIP locally:
-- From the project root run:
-  zip -r project.zip .
-
-If you want me to push these files to a GitHub repo and provide a downloadable zip URL, say so and I’ll create the repo for you.
+Notes:
+- Finnhub WebSocket endpoint: `wss://ws.finnhub.io?token=YOUR_API_KEY`
+- Subscribe to symbols by sending: `{"type":"subscribe","symbol":"OANDA:EUR_USD"}`
+- The server relays `trade` messages into simplified `PRICE` messages for the browser.
